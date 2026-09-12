@@ -1,0 +1,12 @@
+service: user-identity
+
+provider:
+  name: aws
+  runtime: python3.12
+  region: us-east-1
+
+functions:
+  api:
+    handler: app.main.handler
+    events:
+      - httpApi: '*'
