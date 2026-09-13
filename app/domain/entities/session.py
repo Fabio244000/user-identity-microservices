@@ -6,7 +6,8 @@ from uuid import UUID
 
 class SessionStatus(StrEnum):
     ACTIVE = 'activa'
-    INVALIDATED = 'invalidada'
+    CLOSED = 'cerrada'
+    SUSPENDED = 'suspendida'
 
 
 @dataclass
@@ -16,7 +17,7 @@ class Session:
     status: SessionStatus
     created_at: datetime
     expires_at: datetime
-    invalidated_at: datetime | None = None
+    closed_at: datetime | None = None
     id: int | None = None
 
     @classmethod
@@ -30,3 +31,11 @@ class Session:
             created_at=created_at,
             expires_at=expires_at,
         )
+
+    def refresh(self, token_id: str, duration_minutes: int) -> None:
+        created_at = datetime.now(UTC)
+        self.token_id = token_id
+        self.status = SessionStatus.ACTIVE
+        self.created_at = created_at
+        self.expires_at = created_at + timedelta(minutes=duration_minutes)
+        self.closed_at = None

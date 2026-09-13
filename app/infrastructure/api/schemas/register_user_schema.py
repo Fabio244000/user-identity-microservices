@@ -1,9 +1,11 @@
 from pydantic import BaseModel, EmailStr, Field
 
-USERNAME_PATTERN = r'^[A-Za-z0-9]+$'
-FULL_NAME_PATTERN = r'^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+$'
-PHONE_PATTERN = r'^\+51 \d{9}$'
-PASSWORD_PATTERN = r'^[A-Za-z0-9]+$'
+from app.infrastructure.api.schemas.patterns import (
+    FULL_NAME_PATTERN,
+    PASSWORD_PATTERN,
+    PHONE_PATTERN,
+    USERNAME_PATTERN,
+)
 
 
 class RegisterUserRequest(BaseModel):

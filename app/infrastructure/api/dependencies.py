@@ -1,7 +1,9 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from app.application.use_cases.login_user import LoginUser
 from app.application.use_cases.register_user import RegisterUser
+from app.domain.ports.input.login_user_port import LoginUserPort
 from app.domain.ports.input.register_user_port import RegisterUserPort
 from app.infrastructure.database.repositories.session_repository import (
     SessionRepository,
@@ -15,6 +17,16 @@ from config.settings import settings
 
 def get_register_user(db: Session = Depends(get_db)) -> RegisterUserPort:
     return RegisterUser(
+        user_repository=UserRepository(db),
+        session_repository=SessionRepository(db),
+        password_hasher=Argon2PasswordHasher(),
+        token_issuer=JwtTokenIssuer(settings),
+        session_duration_minutes=settings.session_duration_minutes,
+    )
+
+
+def get_login_user(db: Session = Depends(get_db)) -> LoginUserPort:
+    return LoginUser(
         user_repository=UserRepository(db),
         session_repository=SessionRepository(db),
         password_hasher=Argon2PasswordHasher(),

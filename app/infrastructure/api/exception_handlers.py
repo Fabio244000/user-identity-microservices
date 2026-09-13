@@ -1,9 +1,23 @@
+import logging
+
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.domain.exceptions.user_exceptions import UserAlreadyExistsError
+from app.domain.constants.messages import (
+    INVALID_CREDENTIALS_MESSAGE,
+    LOGIN_NOT_ALLOWED_MESSAGE,
+    UNEXPECTED_ERROR_MESSAGE,
+)
+from app.domain.exceptions.session_exceptions import SessionNotFoundError
+from app.domain.exceptions.user_exceptions import (
+    InvalidCredentialsError,
+    LoginNotAllowedError,
+    UserAlreadyExistsError,
+)
 from app.infrastructure.api.schemas.api_response import ApiResponse
+
+logger = logging.getLogger(__name__)
 
 FIELD_LABELS = {
     'username': 'el nombre de usuario',
@@ -94,10 +108,38 @@ async def handle_validation_error(
     return JSONResponse(status_code=422, content=body.model_dump())
 
 
+async def handle_invalid_credentials(
+    _request: Request, _exc: InvalidCredentialsError
+) -> JSONResponse:
+    body: ApiResponse[None] = ApiResponse(
+        success=False, message=INVALID_CREDENTIALS_MESSAGE, data=None, detail=None
+    )
+    return JSONResponse(status_code=400, content=body.model_dump())
+
+
+async def handle_login_not_allowed(
+    _request: Request, _exc: LoginNotAllowedError
+) -> JSONResponse:
+    body: ApiResponse[None] = ApiResponse(
+        success=False, message=LOGIN_NOT_ALLOWED_MESSAGE, data=None, detail=None
+    )
+    return JSONResponse(status_code=400, content=body.model_dump())
+
+
+async def handle_session_not_found(
+    _request: Request, exc: SessionNotFoundError
+) -> JSONResponse:
+    logger.error('No session found for user %s', exc.user_id)
+    body: ApiResponse[None] = ApiResponse(
+        success=False, message=UNEXPECTED_ERROR_MESSAGE, data=None, detail=None
+    )
+    return JSONResponse(status_code=500, content=body.model_dump())
+
+
 async def handle_unexpected_error(_request: Request, _exc: Exception) -> JSONResponse:
     body: ApiResponse[None] = ApiResponse(
         success=False,
-        message='Ocurrió un problema al procesar tu solicitud. Intenta nuevamente.',
+        message=UNEXPECTED_ERROR_MESSAGE,
         data=None,
         detail=None,
     )

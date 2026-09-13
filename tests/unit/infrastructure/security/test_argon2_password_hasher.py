@@ -17,3 +17,17 @@ def test_hash_produces_a_value_that_verifies_against_the_original_password() -> 
     hashed = hasher.hash('plain-password123')
 
     PasswordHasher().verify(hashed, 'plain-password123')
+
+
+def test_verify_returns_true_for_the_matching_password() -> None:
+    hasher = Argon2PasswordHasher()
+    hashed = hasher.hash('plain-password123')
+
+    assert hasher.verify('plain-password123', hashed) is True
+
+
+def test_verify_returns_false_for_a_non_matching_password() -> None:
+    hasher = Argon2PasswordHasher()
+    hashed = hasher.hash('plain-password123')
+
+    assert hasher.verify('wrong-password', hashed) is False

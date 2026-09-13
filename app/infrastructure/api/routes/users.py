@@ -8,7 +8,7 @@ from app.infrastructure.api.schemas.register_user_schema import (
     RegisterUserResponseData,
 )
 
-router = APIRouter(prefix='/api/v1/users', tags=['users'])
+router = APIRouter(prefix='/users', tags=['users'])
 
 CONFLICT_RESPONSE = {
     'description': 'Username, email o phone ya registrados',
