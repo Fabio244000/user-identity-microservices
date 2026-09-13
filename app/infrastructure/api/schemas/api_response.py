@@ -3,8 +3,8 @@ from typing import Any
 from pydantic import BaseModel
 
 
-class ApiResponse(BaseModel):
+class ApiResponse[T](BaseModel):
     success: bool
     message: str
-    data: Any | None = None
+    data: T | None = None
     detail: Any | None = None

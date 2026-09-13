@@ -9,7 +9,7 @@ router = APIRouter(tags=['health'])
 
 
 @router.get('/health')
-def check_health(db: Session = Depends(get_db)) -> ApiResponse:
+def check_health(db: Session = Depends(get_db)) -> ApiResponse[dict[str, str]]:
     db.execute(text('SELECT 1'))
     return ApiResponse(
         success=True,

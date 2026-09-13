@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     postgres_db: str
     database_url: str
     secret_key: str
+    session_duration_minutes: int = 30
 
 
 settings = Settings()
