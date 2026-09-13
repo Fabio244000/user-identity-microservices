@@ -16,8 +16,8 @@ def create_app() -> FastAPI:
     app = FastAPI(title='User Identity Service')
     app.include_router(health_router)
     app.include_router(users_router)
-    app.add_exception_handler(UserAlreadyExistsError, handle_user_already_exists)
-    app.add_exception_handler(RequestValidationError, handle_validation_error)
+    app.add_exception_handler(UserAlreadyExistsError, handle_user_already_exists)  # type: ignore[arg-type]
+    app.add_exception_handler(RequestValidationError, handle_validation_error)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, handle_unexpected_error)
     return app
 
