@@ -71,3 +71,19 @@ def test_refresh_clears_closed_at() -> None:
     session.refresh(token_id='new-jti', duration_minutes=DURATION_MINUTES)
 
     assert session.closed_at is None
+
+
+def test_close_sets_status_to_closed() -> None:
+    session = _build_active_session()
+
+    session.close()
+
+    assert session.status == SessionStatus.CLOSED
+
+
+def test_close_sets_closed_at() -> None:
+    session = _build_active_session()
+
+    session.close()
+
+    assert session.closed_at is not None

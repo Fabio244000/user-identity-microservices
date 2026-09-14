@@ -2,7 +2,10 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from mangum import Mangum
 
-from app.domain.exceptions.session_exceptions import SessionNotFoundError
+from app.domain.exceptions.session_exceptions import (
+    InvalidSessionTokenError,
+    SessionNotFoundError,
+)
 from app.domain.exceptions.user_exceptions import (
     InvalidCredentialsError,
     LoginNotAllowedError,
@@ -10,6 +13,7 @@ from app.domain.exceptions.user_exceptions import (
 )
 from app.infrastructure.api.exception_handlers import (
     handle_invalid_credentials,
+    handle_invalid_session_token,
     handle_login_not_allowed,
     handle_session_not_found,
     handle_unexpected_error,
@@ -29,6 +33,7 @@ def create_app() -> FastAPI:
     app.add_exception_handler(InvalidCredentialsError, handle_invalid_credentials)  # type: ignore[arg-type]
     app.add_exception_handler(LoginNotAllowedError, handle_login_not_allowed)  # type: ignore[arg-type]
     app.add_exception_handler(SessionNotFoundError, handle_session_not_found)  # type: ignore[arg-type]
+    app.add_exception_handler(InvalidSessionTokenError, handle_invalid_session_token)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, handle_unexpected_error)
     return app
 

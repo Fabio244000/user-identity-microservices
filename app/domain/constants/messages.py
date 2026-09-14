@@ -9,3 +9,6 @@ LOGIN_NOT_ALLOWED_MESSAGE = (
 UNEXPECTED_ERROR_MESSAGE = (
     'Ocurrió un problema al procesar tu solicitud. Intenta nuevamente.'
 )
+
+INVALID_SESSION_TOKEN_MESSAGE = 'Token inválido.'
+CLOSE_SESSION_SUCCESS_MESSAGE = 'Sesión cerrada exitosamente.'

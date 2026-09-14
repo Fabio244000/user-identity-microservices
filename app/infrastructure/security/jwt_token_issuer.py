@@ -1,9 +1,13 @@
 from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
-from jose import jwt
+from jose import JWTError, jwt
 
-from app.domain.ports.output.token_issuer_port import IssuedToken, TokenIssuerPort
+from app.domain.ports.output.token_issuer_port import (
+    DecodedToken,
+    IssuedToken,
+    TokenIssuerPort,
+)
 from config.settings import Settings
 
 JWT_ALGORITHM = 'HS256'
@@ -27,3 +31,20 @@ class JwtTokenIssuer(TokenIssuerPort):
         }
         token = jwt.encode(payload, self._settings.secret_key, algorithm=JWT_ALGORITHM)
         return IssuedToken(token=token, jti=jti)
+
+    def decode(self, token: str) -> DecodedToken | None:
+        try:
+            payload = jwt.decode(
+                token,
+                self._settings.secret_key,
+                algorithms=[JWT_ALGORITHM],
+                options={'verify_exp': False},
+            )
+        except JWTError:
+            return None
+        jti = payload.get('jti')
+        exp = payload.get('exp')
+        if jti is None or exp is None:
+            return None
+        is_expired = datetime.now(UTC).timestamp() > exp
+        return DecodedToken(jti=jti, is_expired=is_expired)

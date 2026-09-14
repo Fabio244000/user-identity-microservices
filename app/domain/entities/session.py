@@ -39,3 +39,7 @@ class Session:
         self.created_at = created_at
         self.expires_at = created_at + timedelta(minutes=duration_minutes)
         self.closed_at = None
+
+    def close(self) -> None:
+        self.status = SessionStatus.CLOSED
+        self.closed_at = datetime.now(UTC)

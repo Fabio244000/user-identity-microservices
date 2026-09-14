@@ -29,6 +29,11 @@ class SessionRepository(SessionRepositoryPort):
         model = self._db_session.execute(statement).scalar_one_or_none()
         return self._to_entity(model) if model else None
 
+    def find_by_token_id(self, token_id: str) -> Session | None:
+        statement = select(SessionModel).where(SessionModel.token_id == token_id)
+        model = self._db_session.execute(statement).scalar_one_or_none()
+        return self._to_entity(model) if model else None
+
     def update(self, session: Session) -> None:
         model = self._db_session.get(SessionModel, session.id)
         if model is None:

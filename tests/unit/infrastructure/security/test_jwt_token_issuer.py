@@ -36,3 +36,43 @@ def test_issue_sets_expiration_based_on_session_duration_minutes() -> None:
 
     payload = jwt.decode(issued.token, settings.secret_key, algorithms=[JWT_ALGORITHM])
     assert payload['exp'] - payload['iat'] == 60
+
+
+def test_decode_returns_the_jti_for_a_valid_non_expired_token() -> None:
+    issuer = JwtTokenIssuer(_build_settings())
+    issued = issuer.issue(uuid4())
+
+    decoded = issuer.decode(issued.token)
+
+    assert decoded is not None
+    assert decoded.jti == issued.jti
+    assert decoded.is_expired is False
+
+
+def test_decode_returns_the_jti_and_marks_it_expired_for_an_expired_token() -> None:
+    settings = _build_settings(session_duration_minutes=-1)
+    issuer = JwtTokenIssuer(settings)
+    issued = issuer.issue(uuid4())
+
+    decoded = issuer.decode(issued.token)
+
+    assert decoded is not None
+    assert decoded.jti == issued.jti
+    assert decoded.is_expired is True
+
+
+def test_decode_returns_none_for_a_malformed_token() -> None:
+    issuer = JwtTokenIssuer(_build_settings())
+
+    assert issuer.decode('not-a-real-token') is None
+
+
+def test_decode_returns_none_when_signature_does_not_match() -> None:
+    issuer = JwtTokenIssuer(_build_settings())
+    forged_token = jwt.encode(
+        {'jti': 'forged-jti', 'exp': 9999999999},
+        'a-different-secret',
+        algorithm=JWT_ALGORITHM,
+    )
+
+    assert issuer.decode(forged_token) is None

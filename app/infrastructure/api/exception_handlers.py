@@ -6,10 +6,14 @@ from fastapi.responses import JSONResponse
 
 from app.domain.constants.messages import (
     INVALID_CREDENTIALS_MESSAGE,
+    INVALID_SESSION_TOKEN_MESSAGE,
     LOGIN_NOT_ALLOWED_MESSAGE,
     UNEXPECTED_ERROR_MESSAGE,
 )
-from app.domain.exceptions.session_exceptions import SessionNotFoundError
+from app.domain.exceptions.session_exceptions import (
+    InvalidSessionTokenError,
+    SessionNotFoundError,
+)
 from app.domain.exceptions.user_exceptions import (
     InvalidCredentialsError,
     LoginNotAllowedError,
@@ -134,6 +138,15 @@ async def handle_session_not_found(
         success=False, message=UNEXPECTED_ERROR_MESSAGE, data=None, detail=None
     )
     return JSONResponse(status_code=500, content=body.model_dump())
+
+
+async def handle_invalid_session_token(
+    _request: Request, _exc: InvalidSessionTokenError
+) -> JSONResponse:
+    body: ApiResponse[None] = ApiResponse(
+        success=False, message=INVALID_SESSION_TOKEN_MESSAGE, data=None, detail=None
+    )
+    return JSONResponse(status_code=401, content=body.model_dump())
 
 
 async def handle_unexpected_error(_request: Request, _exc: Exception) -> JSONResponse:

@@ -1,8 +1,10 @@
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from app.application.use_cases.close_session import CloseSession
 from app.application.use_cases.login_user import LoginUser
 from app.application.use_cases.register_user import RegisterUser
+from app.domain.ports.input.close_session_port import CloseSessionPort
 from app.domain.ports.input.login_user_port import LoginUserPort
 from app.domain.ports.input.register_user_port import RegisterUserPort
 from app.infrastructure.database.repositories.session_repository import (
@@ -32,4 +34,11 @@ def get_login_user(db: Session = Depends(get_db)) -> LoginUserPort:
         password_hasher=Argon2PasswordHasher(),
         token_issuer=JwtTokenIssuer(settings),
         session_duration_minutes=settings.session_duration_minutes,
+    )
+
+
+def get_close_session(db: Session = Depends(get_db)) -> CloseSessionPort:
+    return CloseSession(
+        session_repository=SessionRepository(db),
+        token_issuer=JwtTokenIssuer(settings),
     )
