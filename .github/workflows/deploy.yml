@@ -28,11 +28,26 @@ jobs:
         with:
           platforms: arm64
 
+      # Paso temporal de diagnóstico — borrar una vez resuelto el error de
+      # OIDC. Decodifica el token real que GitHub le manda a AWS para
+      # comparar sub/aud contra la política de confianza del rol, en vez de
+      # adivinar. No imprime nada secreto, solo los claims del token.
+      - name: Debug OIDC token claims
+        run: |
+          IDTOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | python3 -c "import sys, json; print(json.load(sys.stdin)['value'])")
+          python3 -c "
+          import sys, json, base64
+          token = sys.argv[1]
+          payload = token.split('.')[1]
+          padded = payload + '=' * (-len(payload) % 4)
+          print(json.dumps(json.loads(base64.urlsafe_b64decode(padded)), indent=2))
+          " "$IDTOKEN"
+
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }} # TODO: ARN del rol de deploy (Parte B), guardado como secret de GitHub
-          aws-region: us-east-1 # TODO: debe coincidir con provider.region en serverless.yml, aún sin definir (Parte B)
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
 
       - name: Deploy
         env:
