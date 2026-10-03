@@ -1,0 +1,7 @@
+{
+  "name": "user-identity",
+  "private": true,
+  "devDependencies": {
+    "serverless": "^4.43.0"
+  }
+}

@@ -1,12 +1,68 @@
 service: user-identity
 
+custom:
+  pythonRequirements:
+    fileName: requirements/base.txt
+    layer: true
+    dockerizePip: true # necesario: psycopg[binary] y argon2-cffi tienen extensiones C,
+    # deben compilarse para Amazon Linux, no para la máquina local.
+
 provider:
   name: aws
   runtime: python3.12
+  architecture: arm64
   region: us-east-1
+  httpApi:
+    payload: '2.0'
+  vpc:
+    subnetIds:
+      - subnet-0163ffcf34770d937 # user-identity-private-1a
+      - subnet-0f44784a3de31da43 # user-identity-private-1b
+    securityGroupIds:
+      - sg-08847dc1e30273909 # user-identity-lambda-sg
+  iam:
+    role: arn:aws:iam::702828429707:role/user-identity-lambda-execution
+  environment:
+    # Config no sensible — SSM Parameter Store (Standard, gratis). El resolver
+    # propio de Serverless Framework es aceptable acá porque no es un secreto
+    # (a diferencia de SECRET_KEY/DATABASE_URL abajo, que sí usan referencias
+    # dinámicas de CloudFormation para no pasar en texto plano por el template).
+    SESSION_DURATION_MINUTES: ${ssm:/user-identity/session_duration_minutes}
+    SECRET_KEY: '{{resolve:secretsmanager:user-identity/secret-key}}'
+    DATABASE_URL:
+      Fn::Sub:
+        - 'postgresql+psycopg://${DbUser}:${DbPassword}@${DbHost}:${DbPort}/${DbName}'
+        - DbUser: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:username}}'
+          DbPassword: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:password}}'
+          DbHost: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:host}}'
+          DbPort: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:port}}'
+          DbName: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:dbname}}'
 
 functions:
   api:
     handler: app.main.handler
+    layers:
+      - Ref: PythonRequirementsLambdaLayer
     events:
       - httpApi: '*'
+  migrate:
+    handler: app.migrate_handler.handler
+    layers:
+      - Ref: PythonRequirementsLambdaLayer
+
+resources:
+  Resources:
+    MigrationTrigger:
+      Type: Custom::Migration
+      Properties:
+        ServiceToken:
+          Fn::GetAtt: [MigrateLambdaFunction, Arn]
+        # Cambia en cada deploy, para forzar que CloudFormation vuelva a invocar
+        # el Custom Resource siempre — si no, solo se ejecuta la primera vez,
+        # porque CloudFormation no re-invoca un Custom Resource a menos que
+        # cambien sus propiedades.
+        DeployId: ${sls:instanceId}
+  extensions:
+    ApiLambdaFunction:
+      DependsOn:
+        - MigrationTrigger

@@ -1,0 +1,40 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install deploy dependencies
+        run: npm ci
+
+      # Necesario para que dockerizePip pueda compilar las dependencias para
+      # arm64 (Graviton2) en un runner de GitHub Actions, que es x86_64.
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }} # TODO: ARN del rol de deploy (Parte B), guardado como secret de GitHub
+          aws-region: us-east-1 # TODO: debe coincidir con provider.region en serverless.yml, aún sin definir (Parte B)
+
+      - name: Deploy
+        env:
+          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }} # TODO: access key de Serverless Dashboard (Parte B), no es un secreto de AWS
+        run: npx serverless deploy

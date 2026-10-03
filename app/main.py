@@ -39,4 +39,4 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-handler = Mangum(app)
+handler = Mangum(app, lifespan='off')

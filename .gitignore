@@ -1,5 +1,6 @@
 __pycache__/
 *.pyc
+node_modules/
 .env
 .venv/
 venv/
@@ -10,3 +11,6 @@ htmlcov/
 .coverage
 CLAUDE.md
 practica-microservicios-gestion-identidad.md
+despliegue-aws-checklist.md
+.serverless/meta.json
+.idea
