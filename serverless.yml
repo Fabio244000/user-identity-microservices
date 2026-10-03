@@ -29,14 +29,14 @@ provider:
     # dinámicas de CloudFormation para no pasar en texto plano por el template).
     SESSION_DURATION_MINUTES: ${ssm:/user-identity/session_duration_minutes}
     SECRET_KEY: '{{resolve:secretsmanager:user-identity/secret-key}}'
+    # El secreto de RDS solo trae username/password (no host/port/dbname, a
+    # diferencia de lo esperado inicialmente) — el host no es sensible, es el
+    # endpoint público del Connectivity & security tab de RDS.
     DATABASE_URL:
       Fn::Sub:
-        - 'postgresql+psycopg://${DbUser}:${DbPassword}@${DbHost}:${DbPort}/${DbName}'
+        - 'postgresql+psycopg://${DbUser}:${DbPassword}@user-identity-db.cyr6qcws4ev2.us-east-1.rds.amazonaws.com:5432/user_identity'
         - DbUser: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:username}}'
           DbPassword: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:password}}'
-          DbHost: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:host}}'
-          DbPort: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:port}}'
-          DbName: '{{resolve:secretsmanager:rds!db-38badb2a-b892-42b9-86bd-4cbf5a10efd5:SecretString:dbname}}'
 
 functions:
   api:
