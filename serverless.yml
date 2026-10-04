@@ -45,10 +45,21 @@ functions:
       - Ref: PythonRequirementsLambdaLayer
     events:
       - httpApi: '*'
+    # 29s es el techo real de todas formas (timeout de integración de API
+    # Gateway HTTP API, no configurable) — ponerlo acá evita que Lambda corte
+    # antes que ese límite por su cuenta.
+    timeout: 29
   migrate:
     handler: app.migrate_handler.handler
     layers:
       - Ref: PythonRequirementsLambdaLayer
+    # Sin esto, usa el default (unos pocos segundos) — insuficiente para el
+    # primer attach a la VPC + conectar a la base de datos + correr
+    # `alembic upgrade head` + responderle a CloudFormation. Si el timeout la
+    # mata, el handler nunca llega a avisarle nada a CloudFormation (no es una
+    # excepción capturable, es un kill del runtime) y el Custom Resource se
+    # queda esperando hasta su propio límite (~1h), que es lo que pasó acá.
+    timeout: 30
 
 resources:
   Resources:

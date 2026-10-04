@@ -13,4 +13,5 @@ CLAUDE.md
 practica-microservicios-gestion-identidad.md
 despliegue-aws-checklist.md
 .serverless/meta.json
-.idea
+.idea/
+.idea/jsonSchemas.xml
