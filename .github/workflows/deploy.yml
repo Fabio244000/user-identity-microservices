@@ -63,4 +63,4 @@ jobs:
       - name: Deploy
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }} # TODO: access key de Serverless Dashboard (Parte B), no es un secreto de AWS
-        run: npx serverless deploy --stage ${{ inputs.stage || 'dev' }}
+        run: npx serverless deploy --stage ${{ inputs.stage || 'dev' }} --debug
