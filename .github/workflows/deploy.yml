@@ -64,3 +64,11 @@ jobs:
         env:
           SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }} # TODO: access key de Serverless Dashboard (Parte B), no es un secreto de AWS
         run: npx serverless deploy --stage ${{ inputs.stage || 'dev' }} --debug
+
+      # Captura el detalle real de validación de CloudFormation (el que no
+      # trae el DescribeStackEvents clásico que usa Serverless Framework)
+      # apenas falla el deploy, antes de que el stack se autoelimine
+      # (onFailure: DELETE) y se pierda la posibilidad de verlo a mano.
+      - name: Show CloudFormation validation details on failure
+        if: failure()
+        run: aws cloudformation describe-events --stack-name user-identity-${{ inputs.stage || 'dev' }} --region us-east-1
