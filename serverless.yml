@@ -68,6 +68,11 @@ resources:
       Properties:
         ServiceToken:
           Fn::GetAtt: [MigrateLambdaFunction, Arn]
+        # Default de CloudFormation para Custom Resources: 3600s (1h) de espera
+        # antes de darse por vencido si la Lambda nunca responde. Lo acotamos a
+        # 120s (4x el timeout de 30s de la Lambda) para fallar rápido en vez de
+        # colgar el deploy entero casi una hora, como pasó la primera vez.
+        ServiceTimeout: 120
         # Cambia en cada deploy, para forzar que CloudFormation vuelva a invocar
         # el Custom Resource siempre — si no, solo se ejecuta la primera vez,
         # porque CloudFormation no re-invoca un Custom Resource a menos que

@@ -12,6 +12,10 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Salvaguarda: si algo se cuelga de forma inesperada, el job se corta acá
+    # en vez de seguir corriendo en silencio hasta el límite de GitHub Actions
+    # (6h) o hasta que las credenciales OIDC expiren (~1h).
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v5
 
