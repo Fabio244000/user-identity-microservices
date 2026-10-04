@@ -8,9 +8,6 @@ from config.settings import Settings
 
 def _build_settings(session_duration_minutes: int = 30) -> Settings:
     return Settings(
-        postgres_user='user',
-        postgres_password='password',
-        postgres_db='db',
         database_url='postgresql+psycopg://user:password@localhost:5432/db',
         secret_key='test-secret-key',
         session_duration_minutes=session_duration_minutes,

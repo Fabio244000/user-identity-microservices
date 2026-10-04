@@ -15,3 +15,4 @@ despliegue-aws-checklist.md
 .serverless/meta.json
 .idea/
 .idea/jsonSchemas.xml
+.idea/awsToolkit.xml
