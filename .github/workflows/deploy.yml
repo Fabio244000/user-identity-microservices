@@ -4,13 +4,6 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      stage:
-        description: 'Stage a desplegar'
-        required: false
-        default: 'dev'
-        type: string
 
 permissions:
   id-token: write
@@ -39,21 +32,6 @@ jobs:
         with:
           platforms: arm64
 
-      # Paso temporal de diagnóstico — borrar una vez resuelto el error de
-      # OIDC. Decodifica el token real que GitHub le manda a AWS para
-      # comparar sub/aud contra la política de confianza del rol, en vez de
-      # adivinar. No imprime nada secreto, solo los claims del token.
-      - name: Debug OIDC token claims
-        run: |
-          IDTOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | python3 -c "import sys, json; print(json.load(sys.stdin)['value'])")
-          python3 -c "
-          import sys, json, base64
-          token = sys.argv[1]
-          payload = token.split('.')[1]
-          padded = payload + '=' * (-len(payload) % 4)
-          print(json.dumps(json.loads(base64.urlsafe_b64decode(padded)), indent=2))
-          " "$IDTOKEN"
-
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -62,13 +40,5 @@ jobs:
 
       - name: Deploy
         env:
-          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }} # TODO: access key de Serverless Dashboard (Parte B), no es un secreto de AWS
-        run: npx serverless deploy --stage ${{ inputs.stage || 'dev' }} --debug
-
-      # Captura el detalle real de validación de CloudFormation (el que no
-      # trae el DescribeStackEvents clásico que usa Serverless Framework)
-      # apenas falla el deploy, antes de que el stack se autoelimine
-      # (onFailure: DELETE) y se pierda la posibilidad de verlo a mano.
-      - name: Show CloudFormation validation details on failure
-        if: failure()
-        run: aws cloudformation describe-events --stack-name user-identity-${{ inputs.stage || 'dev' }} --region us-east-1
+          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+        run: npx serverless deploy --stage dev
